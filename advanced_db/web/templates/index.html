@@ -1,0 +1,188 @@
+<!-- web/templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 Book Scraper Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header class="header">
+            <h1><i class="fas fa-book"></i> Advanced Book Scraper Dashboard</h1>
+            <p class="subtitle">Real-time book scraping & analytics</p>
+        </header>
+
+        <!-- STATS CARDS -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="total-books">0</h3>
+                    <p>Total Books</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-pound-sign"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="avg-price">£0.00</h3>
+                    <p>Average Price</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="avg-rating">0.0</h3>
+                    <p>Average Rating</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="last-update">Now</h3>
+                    <p>Last Updated</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- LEFT SIDE: CONTROLS & CHARTS -->
+            <div class="left-column">
+                <!-- SCRAPE CONTROL PANEL -->
+                <div class="control-panel">
+                    <h2><i class="fas fa-play-circle"></i> Scrape Control</h2>
+                    <form id="scrape-form">
+                        <div class="form-group">
+                            <label for="url"><i class="fas fa-link"></i> Target URL:</label>
+                            <input type="text" id="url" name="url" 
+                                   value="https://books.toscrape.com" 
+                                   placeholder="Enter website URL" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pages"><i class="fas fa-file-alt"></i> Pages to scrape:</label>
+                            <input type="number" id="pages" name="pages" value="2" min="1" max="10">
+                        </div>
+                        
+                        <div class="button-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-play"></i> Start Scraping
+                            </button>
+                            <button type="button" id="export-btn" class="btn btn-secondary">
+                                <i class="fas fa-download"></i> Export CSV
+                            </button>
+                            <button type="button" id="refresh-btn" class="btn btn-outline">
+                                <i class="fas fa-sync-alt"></i> Refresh Data
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div id="scrape-status" class="status-message"></div>
+                </div>
+
+                <!-- CHARTS -->
+                <div class="charts-container">
+                    <div class="chart-box">
+                        <h3><i class="fas fa-chart-pie"></i> Books by Rating</h3>
+                        <canvas id="ratingChart"></canvas>
+                    </div>
+                    
+                    <div class="chart-box">
+                        <h3><i class="fas fa-chart-bar"></i> Price Distribution</h3>
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDE: BOOKS TABLE -->
+            <div class="right-column">
+                <div class="books-table-container">
+                    <div class="table-header">
+                        <h2><i class="fas fa-list"></i> Recently Scraped Books</h2>
+                        <div class="table-controls">
+                            <input type="text" id="search-box" placeholder="Search books...">
+                            <select id="rating-filter">
+                                <option value="">All Ratings</option>
+                                <option value="5">★★★★★</option>
+                                <option value="4">★★★★</option>
+                                <option value="3">★★★</option>
+                                <option value="2">★★</option>
+                                <option value="1">★</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table id="books-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Price</th>
+                                    <th>Rating</th>
+                                    <th>Availability</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="books-table-body">
+                                <!-- Dynamic content from JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="table-footer">
+                        <div class="pagination">
+                            <button id="prev-page" disabled>Previous</button>
+                            <span id="page-info">Page 1 of 1</span>
+                            <button id="next-page" disabled>Next</button>
+                        </div>
+                        <div class="items-per-page">
+                            <label>Show:</label>
+                            <select id="items-per-page">
+                                <option value="10">10</option>
+                                <option value="25" selected>25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p>📚 Advanced Book Scraper v1.0.0 | Built with FastAPI & Selenium</p>
+            <p class="api-info">API Endpoints: <code>/api/books</code> • <code>/api/scrape</code> • <code>/api/stats</code></p>
+        </footer>
+    </div>
+
+    <!-- MODAL FOR BOOK DETAILS -->
+    <div id="book-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modal-title">Book Details</h2>
+            <div id="modal-body">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
