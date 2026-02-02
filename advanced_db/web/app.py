@@ -31,23 +31,23 @@ try:
     if classes_found:
         # Uzmi prvu klasu (verovatno glavni scraper)
         ScraperClass = classes_found[0][1]
-        print(f"✅ Using scraper class: {classes_found[0][0]}")
+        print(f" Using scraper class: {classes_found[0][0]}")
     else:
-        print("❌ No scraper classes found in scraper.scraper")
+        print(" No scraper classes found in scraper.scraper")
         
 except ImportError as e:
-    print(f"❌ Could not import scraper module: {e}")
+    print(f" Could not import scraper module: {e}")
     ScraperClass = None
 except Exception as e:
-    print(f"❌ Error finding scraper class: {e}")
+    print(f" Error finding scraper class: {e}")
     ScraperClass = None
 
 # ===================== IMPORT DATABASE =====================
 try:
     from database.db_handler import DatabaseHandler
-    print("✅ DatabaseManager imported successfully")
+    print(" DatabaseManager imported successfully")
 except ImportError as e:
-    print(f"❌ Could not import DatabaseManager: {e}")
+    print(f" Could not import DatabaseManager: {e}")
     # Fallback klasa ako baza ne postoji
     class DatabaseManager:
         def __init__(self, db_path):
@@ -221,38 +221,38 @@ async def scrape_books(url: str = Form(...), pages: int = Form(1)):
             "message": "Scraper not available. Check scrapers/selenium_scraper.py"
         }
     
-    print(f"🔍 Starting scrape: URL={url}, pages={pages}")
+    print(f" Starting scrape: URL={url}, pages={pages}")
     
     try:
         # Create scraper instance
         scraper = ScraperClass(headless=True)
-        print(f"✅ Created scraper instance: {type(scraper).__name__}")
+        print(f" Created scraper instance: {type(scraper).__name__}")
         
         # List available methods
         available_methods = [m for m in dir(scraper) if not m.startswith('_')]
-        print(f"📋 Available methods: {available_methods}")
+        print(f" Available methods: {available_methods}")
         
         # Try to find and call scrape method
         books = []
         
         # Method 1: Direct attribute check
         if hasattr(scraper, 'scrape_books') and callable(scraper.scrape_books):
-            print("🎯 Using scrape_books() method")
+            print(" Using scrape_books() method")
             books = scraper.scrape_books(url, max_pages=pages)
         
         # Method 2: Try scrape() method
         elif hasattr(scraper, 'scrape') and callable(scraper.scrape):
-            print("🎯 Using scrape() method")
+            print(" Using scrape() method")
             books = scraper.scrape(url, max_pages=pages)
         
         # Method 3: Try get_books() method
         elif hasattr(scraper, 'get_books') and callable(scraper.get_books):
-            print("🎯 Using get_books() method")
+            print(" Using get_books() method")
             books = scraper.get_books(url, pages)
         
         # Method 4: Manual scraping if driver exists
         elif hasattr(scraper, 'driver'):
-            print("⚠️ Manual scraping needed")
+            print(" Manual scraping needed")
             # This would require custom implementation
             return {
                 "success": False,
@@ -265,26 +265,26 @@ async def scrape_books(url: str = Form(...), pages: int = Form(1)):
                 "message": f"No scrape method found. Available: {available_methods}"
             }
         
-        print(f"📚 Scraped {len(books)} books")
+        print(f" Scraped {len(books)} books")
         
         # Save to database
         if books and len(books) > 0:
             success = db.save_books(books)
             if not success:
-                print("⚠️ Failed to save books to database")
+                print(" Failed to save books to database")
         else:
-            print("⚠️ No books scraped")
+            print(" No books scraped")
         
         # Cleanup
         try:
             if hasattr(scraper, 'close') and callable(scraper.close):
                 scraper.close()
-                print("✅ Scraper closed")
+                print(" Scraper closed")
             elif hasattr(scraper, 'driver') and hasattr(scraper.driver, 'quit'):
                 scraper.driver.quit()
-                print("✅ Driver quit")
+                print(" Driver quit")
         except Exception as cleanup_error:
-            print(f"⚠️ Cleanup error: {cleanup_error}")
+            print(f" Cleanup error: {cleanup_error}")
         
         return {
             "success": True,
@@ -295,7 +295,7 @@ async def scrape_books(url: str = Form(...), pages: int = Form(1)):
         
     except Exception as e:
         error_details = traceback.format_exc()
-        print(f"❌ Scraping error: {e}")
+        print(f" Scraping error: {e}")
         print(error_details)
         
         return {
@@ -306,7 +306,7 @@ async def scrape_books(url: str = Form(...), pages: int = Form(1)):
 
 @app.get("/api/stats", response_class=JSONResponse)
 async def get_stats():
-    """API for statistics"""
+    """API for statistics - FIXED VERSION"""
     try:
         books = db.get_all_books()
         
@@ -314,13 +314,20 @@ async def get_stats():
             return {
                 "success": True,
                 "total_books": 0,
-                "message": "No books in database"
+                "message": "No books in database",
+                # ✅ Dodaj prazne podatke za dashboard
+                "average_price": 0,
+                "average_rating": 0,
+                "books_by_rating": {
+                    "1_star": 0, "2_star": 0, "3_star": 0, 
+                    "4_star": 0, "5_star": 0
+                }
             }
         
         prices = [float(b.get("price", 0)) for b in books if b.get("price") is not None]
         ratings = [int(b.get("rating", 0)) for b in books if b.get("rating") is not None]
         
-        # Price distribution
+        # ✅ Price distribution - KORISTI OVO ZA GRAFIKON
         price_dist = {
             "0-5": len([p for p in prices if 0 <= p < 5]),
             "5-10": len([p for p in prices if 5 <= p < 10]),
@@ -329,13 +336,13 @@ async def get_stats():
             "20+": len([p for p in prices if p >= 20])
         }
         
-        # Rating distribution
+        # ✅ FIXED: Rating distribution - KORISTI KLJUČEVE KOJE DASHBOARD OČEKUE
         rating_dist = {
-            "1": len([r for r in ratings if r == 1]),
-            "2": len([r for r in ratings if r == 2]),
-            "3": len([r for r in ratings if r == 3]),
-            "4": len([r for r in ratings if r == 4]),
-            "5": len([r for r in ratings if r == 5])
+            "1_star": len([r for r in ratings if r == 1]),
+            "2_star": len([r for r in ratings if r == 2]),
+            "3_star": len([r for r in ratings if r == 3]),
+            "4_star": len([r for r in ratings if r == 4]),
+            "5_star": len([r for r in ratings if r == 5])
         }
         
         return {
@@ -345,11 +352,12 @@ async def get_stats():
             "average_rating": round(sum(ratings) / len(ratings), 2) if ratings else 0,
             "min_price": min(prices) if prices else 0,
             "max_price": max(prices) if prices else 0,
-            "price_distribution": price_dist,
-            "rating_distribution": rating_dist,
+            "price_distribution": price_dist,  # Za priceChart
+            "books_by_rating": rating_dist,    # ✅ OVO JE KLJUČNO - dashboard očekuje books_by_rating
             "last_update": books[0].get("timestamp") if books else None
         }
     except Exception as e:
+        print(f"❌ Error in /api/stats: {e}")
         return {
             "success": False,
             "error": str(e)
@@ -415,7 +423,7 @@ async def server_error_handler(request: Request, exc):
 # ===================== MAIN =====================
 if __name__ == "__main__":
     import uvicorn
-    print("🚀 Starting Book Scraper Dashboard...")
-    print("📊 Dashboard: http://localhost:8000")
-    print("📚 API Docs: http://localhost:8000/docs")
+    print(" Starting Book Scraper Dashboard...")
+    print(" Dashboard: http://localhost:8000")
+    print(" API Docs: http://localhost:8000/docs")
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)

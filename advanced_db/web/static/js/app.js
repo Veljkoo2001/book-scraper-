@@ -332,11 +332,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update rating chart
         if (stats.rating_distribution) {
             ratingChart.data.datasets[0].data = [
-                stats.rating_distribution["1"] || 0,
-                stats.rating_distribution["2"] || 0,
-                stats.rating_distribution["3"] || 0,
-                stats.rating_distribution["4"] || 0,
-                stats.rating_distribution["5"] || 0
+                stats.books_by_rating['1_star'] || 0,
+                stats.books_by_rating['2_star'] || 0,
+                stats.books_by_rating['3_star'] || 0,
+                stats.books_by_rating['4_star'] || 0,
+                stats.books_by_rating['5_star'] || 0
             ];
             ratingChart.update();
         } else if (stats.books_by_rating) {

@@ -17,7 +17,13 @@ class SeleniumScraper:
     def __init__(self, headless=True):
         self.headless = headless
         self.driver = None
+        self.options = webdriver.ChromeOptions()
         self._setup_driver()
+
+        if headless:
+            self.options.add_argument('--headless')
+        self.options.add_argument('--no-sandbox')
+        self.options.add_argument('--disable-dev-shm-usage')
     
     def _setup_driver(self):
         """Podešava Chrome driver za Docker ili lokalno."""
@@ -143,6 +149,8 @@ class SeleniumScraper:
         
         return books
     
+    # ZAMENI OVAJ DEO U scrapers/selenium_scraper.py:
+
     def _extract_book_data(self, book_element):
         """
         Ekstrahuje podatke o knjizi
@@ -175,7 +183,29 @@ class SeleniumScraper:
                     rating = rating_map[cls]
                     break
             
-            availability_elem = book_element.find_element(By.CSS_SELECTOR, "p.availability")
+            # ⚠️ OVO JE PROBLEM! Promeni selector! ⚠️
+            # STARI: availability_elem = book_element.find_element(By.CSS_SELECTOR, "p.availability")
+            # NOVI:
+            try:
+                # Prvo probaj sa instock.availability
+                availability_elem = book_element.find_element(By.CSS_SELECTOR, "p.instock.availability")
+                availability = availability_elem.text.strip()
+
+                # Čisti tekst - ukloni višak
+                if "In stock" in availability:
+                    availability = "In stock"
+                elif "Out of stock" in availability:
+                    availability = "Out of stock"
+                elif availability == "":
+                    availability = "In stock"  # default
+            except Exception as e:
+                # Fallback
+                try:
+                    availability_elem = book_element.find_element(By.CSS_SELECTOR, "p.availability")
+                    availability = availability_elem.text.strip()
+                except:
+                    availability = "Check availability"
+            
             availability = availability_elem.text.strip()
             
             return {

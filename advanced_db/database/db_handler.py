@@ -31,8 +31,8 @@ class DatabaseHandler:
             author TEXT,
             price REAL,
             url TEXT UNIQUE,
-            rating INTEGER DEFAULT 0,          # ← DODAJ OVO!
-            availability TEXT DEFAULT 'Unknown', # ← DODAJ OVO!
+            rating INTEGER DEFAULT 0,          
+            availability TEXT DEFAULT 'Unknown', 
             scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         """
@@ -46,7 +46,7 @@ class DatabaseHandler:
         except sqlite3.Error as e:
             logger.error(f"Greška pri kreiranju tabele: {e}")
 
-    def insert_book(self, title, author=None, price=None, url=None, rating=None, availablity=None, **kwargs):
+    def insert_book(self, title, author=None, price=None, url=None, rating=None, availability=None, **kwargs):
         """Ubacuje knjigu u bazu sa fleksibilnim unosom."""
         try:
             conn = sqlite3.connect(self.db_path)
@@ -95,7 +95,7 @@ class DatabaseHandler:
             
             if 'availability' in existing_columns:
                 columns.append('availability')
-                values.append(availablity if availablity else 'Unknown')
+                values.append(availability.strip() if availability and availability.strip() else 'Unknown')
                 
             # Dodaj dodatne kolone iz kwargs
             for key, value in kwargs.items():
@@ -134,10 +134,14 @@ class DatabaseHandler:
             cursor.execute("SELECT * FROM books")
             results = cursor.fetchall()
             conn.close()
-            return results
+
+            # Konvertuj svaki row u dict
+            return [dict(row) for row in results]
+
         except sqlite3.Error as e:
             logger.error(f"Greška pri čitanju iz baze: {e}")
             return []
+
     def recreate_table(self):
         """Kreira novu tabelu sa ispravnom shemom (BRiŠE POSTOJEĆE PODATKE!)."""
         confirm = input("Ovo će obrisati sve postojeće podatke! Da li ste sigurni? (da/ne): ")

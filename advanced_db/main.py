@@ -170,15 +170,12 @@ def scrape_books():
             if page_num == 1:
                 page_url = args.url
             else:
-                page_url = f"{args.url.rstrip('/')}/page-{page_num}.html"
+                page_url = f"{args.url.rstrip('/')}/catalogue/page-{page_num}.html"
             
             logger.debug(f"URL: {page_url}")
             
             # Koristi scrape_page metod
-            books = scraper.scrape_books(
-                url=args.url,
-                max_pages=args.pages
-            )
+            books = scraper.scrape_books(page_url)
             # Ekstraktuj knjige
             ###########################books = extract_books_from_html(html)
             all_books.extend(books)
@@ -199,7 +196,7 @@ def scrape_books():
             return
         
         # 5. Sačuvaj u bazu
-        saved_count = db.save_bocleaoks(books)
+        saved_count = db.save_books(books)
         
         total_in_db = len(db.get_all_books())
         logger.info(f"Sačuvano {saved_count} novih knjiga, ukupno u bazi: {total_in_db} knjiga")
