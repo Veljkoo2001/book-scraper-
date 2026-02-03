@@ -136,7 +136,7 @@ app.mount("/static", StaticFiles(directory="web/static"), name="static")
 templates = Jinja2Templates(directory="web/templates")
 
 # Create database instance
-db_path = "data/books.db"
+db_path = "database/books.db"
 os.makedirs(os.path.dirname(db_path), exist_ok=True)
 db = DatabaseHandler(db_path)
 

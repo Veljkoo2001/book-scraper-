@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!ratingChart || !priceChart) return;
         
         // Update rating chart
-        if (stats.rating_distribution) {
+        if (stats.books_by_rating) {
             ratingChart.data.datasets[0].data = [
                 stats.books_by_rating['1_star'] || 0,
                 stats.books_by_rating['2_star'] || 0,

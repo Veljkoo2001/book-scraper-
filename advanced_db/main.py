@@ -7,7 +7,10 @@ import time
 from bs4 import BeautifulSoup
 
 # Dodaj root folder u Python path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+def new_func(__file__):
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+new_func(__file__)
 
 try:
     from scrapers.selenium_scraper import SeleniumScraper
