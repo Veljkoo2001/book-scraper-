@@ -99,6 +99,8 @@ python scraper.py
 📊 Example Output (CSV)
 
 Title, Price, Rating, Availability
+
 "A Light in the Attic", £51.77, 3, In stock
+
 "Tipping the Velvet", £53.74, 1, In stock
 
